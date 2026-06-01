@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) { exit; } // no direct file access
 // This is an autoloader for the PayFabric! SDK.
 // If you are not using a global autoloader do the following
 // before any other PayFabric files:

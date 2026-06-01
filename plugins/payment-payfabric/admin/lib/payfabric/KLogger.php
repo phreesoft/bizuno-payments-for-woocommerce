@@ -1,4 +1,17 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) { exit; } // no direct file access
+
+// Vendored third-party logging library (katzgrau/KLogger), retained under its upstream class
+// name and used by the PayFabric SDK. It necessarily performs direct filesystem I/O (a streaming
+// append handle) and is referenced by name throughout the SDK, so the prefix / WP_Filesystem /
+// var_export sniffs do not meaningfully apply here.
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_mkdir
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
+// phpcs:disable WordPress.PHP.DevelopmentFunctions.error_log_var_export
 
 /**
  * Finally, a light, permissions-checking logging class.
@@ -145,7 +158,7 @@ class KLogger
         $this->_logFilePath = $logDirectory
             . DIRECTORY_SEPARATOR
             . 'PayFabric_'
-            . date('Y-m-d')
+            . gmdate('Y-m-d')
             . '.log';
 
         $this->_severityThreshold = $severity;
@@ -361,7 +374,7 @@ class KLogger
 
     private function _getTimeLine($level)
     {
-        $time = date(self::$_dateFormat);
+        $time = gmdate(self::$_dateFormat);
 
         switch ($level) {
             case self::EMERG:

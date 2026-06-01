@@ -9,26 +9,30 @@ class payFabric_Request extends payFabric_Builder
             self::$logger->logInfo('_data has been generated');
             self::$logger->logDebug(' ', json_encode($this->_data));
         }
-        $curl = curl_init($this->endpoint);
-        $opt = array(
-            CURLOPT_HTTPHEADER => array('Content-Type: application/json',
-                'Authorization: ' . $this->merchantId . '|' . $this->merchantKey
+        // Use the WordPress HTTP API instead of raw cURL (WP.org coding standards).
+        $args = array(
+            'method'    => empty($this->_data) ? 'GET' : 'POST',
+            'headers'   => array(
+                'Content-Type'  => 'application/json',
+                'Authorization' => $this->merchantId . '|' . $this->merchantKey,
             ),
-            CURLOPT_SSL_VERIFYHOST => self::$sslVerifyHost,
-            CURLOPT_SSL_VERIFYPEER => self::$sslVerifyPeer,
-            CURLOPT_CONNECTTIMEOUT => $this->timeout,
-            CURLOPT_RETURNTRANSFER => 1);
+            'timeout'   => $this->timeout,
+            'sslverify' => (bool) self::$sslVerifyPeer,
+        );
         if (!empty($this->_data)) {
-            $opt[CURLOPT_POST] = 1;
-            $opt[CURLOPT_POSTFIELDS] = json_encode($this->_data);
+            $args['body'] = json_encode($this->_data);
         }
-        curl_setopt_array($curl, $opt);
-        $this->xmlResponse = curl_exec($curl);
+        $response = wp_remote_request($this->endpoint, $args);
         if (is_object(payFabric_RequestBase::$logger)) {
             self::$logger->logInfo('Sending data to ' . $this->endpoint);
         }
-        $curlInfo = curl_getinfo($curl);
-        curl_close($curl);
+        if (is_wp_error($response)) {
+            $this->xmlResponse = false;
+            $curlInfo = array();
+        } else {
+            $this->xmlResponse = wp_remote_retrieve_body($response);
+            $curlInfo = array('total_time' => 0);
+        }
         if (payFabric_RequestBase::$debug == true) {
             $this->printDebug($curlInfo);
         }
@@ -63,8 +67,8 @@ class payFabric_Request extends payFabric_Builder
 
     private function debugger($string)
     {
-        $_d = date('Y-m-d H:m:s', substr(microtime(), "11", "10")) . ":" . substr(microtime(), "2", "5");
-        echo("<br>" . str_repeat("-", 20) . "<br>[" . $_d . "] " . $string . "<br>" . str_repeat("-", 20) . "<br>");
+        $_d = gmdate('Y-m-d H:m:s', (int) substr(microtime(), 11, 10)) . ":" . substr(microtime(), 2, 5);
+        echo '<br>' . esc_html(str_repeat("-", 20)) . '<br>[' . esc_html($_d) . '] ' . esc_html($string) . '<br>' . esc_html(str_repeat("-", 20)) . '<br>';
     }
 
 }

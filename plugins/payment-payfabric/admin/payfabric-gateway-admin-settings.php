@@ -9,6 +9,10 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+// This file is include()'d from WC_Gateway_PayFabric::init_form_fields(), so the variables
+// below are function-local (assigned to $this->form_fields), not true globals. The prefix
+// sniff cannot see the include context and reports false positives; disable it for this file.
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 /*Define live and test gateway host */
 !defined('LIVEGATEWAY') && define('LIVEGATEWAY', 'https://www.payfabric.com');
 !defined('TESTGATEWAY') && define('TESTGATEWAY', 'https://sandbox.payfabric.com');
@@ -91,10 +95,11 @@ if ($integration_show) {
     $admin_fields_array['api_payment_modes'] = array(
         'title' => __('Payment mode', 'bizuno-payments-for-woocommerce'),
         'type' => 'select',
+        // translators: %1$s: opening <a> tag linking to the setup guide; %2$s: closing </a> tag.
         'description' => sprintf(__('Payment Mode controls the presentation of the Hosted Payment Page (HPP):<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;<b>• Direct:</b> HPP shown directly on the checkout page, payment made when placing order. (A theme is required, see %sGuide%s).<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<b>• Direct:</b> HPP shown directly on the checkout page, payment made when placing order. (A theme is required, see %1$sGuide%2$s).<br>
             &nbsp;&nbsp;&nbsp;&nbsp;<b>• Iframe:</b> HPP is inside the shopping site page.<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;<b>• Redirect:</b> Shopping site redirects user to the HPP.'), '<a href="https://github.com/PayFabric/WooCommerce-Plugin#readme" target="_blank">', '</a>' ),
+            &nbsp;&nbsp;&nbsp;&nbsp;<b>• Redirect:</b> Shopping site redirects user to the HPP.', 'bizuno-payments-for-woocommerce'), '<a href="https://github.com/PayFabric/WooCommerce-Plugin#readme" target="_blank">', '</a>' ),
         'desc_tip' => false,
         'default' => 2,
         'options' => array(

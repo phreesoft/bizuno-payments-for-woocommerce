@@ -72,7 +72,7 @@ class PayFabric_Gateway_Request
     //Generate transaction data
     private function get_payfabric_gateway_post_args($order)
     {
-        $parse_result = parse_url(site_url());
+        $parse_result = wp_parse_url(site_url());
         if (isset($parse_result['port'])) {
             $allowOriginUrl = $parse_result['scheme'] . "://" . $parse_result['host'] . ":" . $parse_result['port'];
         } else {
@@ -187,7 +187,7 @@ class PayFabric_Gateway_Request
             return false;
         }
         try {
-            $maxiPago = new payments;
+            $maxiPago = new PayFabric_Payments;
             $maxiPago->setLogger(PayFabric_LOG_DIR, PayFabric_LOG_SEVERITY);
 
             // Set your credentials before any other transaction methods
@@ -287,7 +287,8 @@ class PayFabric_Gateway_Request
             'acceptedPaymentMethods'=> $acceptedPaymentMethods
         );
         $payfabric_form[] = '<div id="cashierDiv"></div>';
-        $payfabric_form[] = '<script type="text/javascript" src="' . $jsUrl . '"></script>';
+        // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- PayFabric Hosted Payment Page SDK must load inline within the gateway's checkout fields; src is a dynamic per-transaction URL.
+        $payfabric_form[] = '<script type="text/javascript" src="' . esc_url( $jsUrl ) . '"></script>';
         $payfabric_form[] = '<script type="text/javascript">';
         $payfabric_form[] = 'function handleResult(data) {';
         $payfabric_form[] = 'if(data.RespStatus == "Approved"){';
@@ -310,7 +311,7 @@ class PayFabric_Gateway_Request
     //Integrate PayFabric Cashier UI ready to pay
     public function generate_payfabric_gateway_form($order, $sandbox)
     {
-        $maxiPago = new payments;
+        $maxiPago = new PayFabric_Payments;
         $maxiPago->setLogger(PayFabric_LOG_DIR, PayFabric_LOG_SEVERITY);
 
         // Set your credentials before any other transaction methods
@@ -356,7 +357,7 @@ class PayFabric_Gateway_Request
             if (is_object(payFabric_RequestBase::$logger)) {
                 payFabric_RequestBase::$logger->logCrit($maxiPago->response);
             }
-            throw new UnexpectedValueException($maxiPago->response, 503);
+            throw new UnexpectedValueException(esc_html($maxiPago->response), 503);
         }
         $maxiPago->token(array("Audience" => "PaymentPage", "Subject" => $responseTran->Key));
         $responseToken = json_decode($maxiPago->response);
@@ -364,7 +365,7 @@ class PayFabric_Gateway_Request
             if (is_object(payFabric_RequestBase::$logger)) {
                 payFabric_RequestBase::$logger->logCrit($maxiPago->response);
             }
-            throw new UnexpectedValueException($maxiPago->response, 503);
+            throw new UnexpectedValueException(esc_html($maxiPago->response), 503);
         }
 
         switch ($this->gateway->api_payment_modes) {
@@ -404,7 +405,7 @@ class PayFabric_Gateway_Request
             throw new UnexpectedValueException('Miss merchant configuration info', 503);
         }
 
-        $maxiPago = new payments;
+        $maxiPago = new PayFabric_Payments;
         $maxiPago->setLogger(PayFabric_LOG_DIR, PayFabric_LOG_SEVERITY);
 
         // Set your credentials before any other transaction methods
@@ -422,7 +423,7 @@ class PayFabric_Gateway_Request
         if ($result->Result) {
             return true;
         } else {
-            throw new UnexpectedValueException( __('Unable to update the transaction.'));
+            throw new UnexpectedValueException( esc_html__('Unable to update the transaction.', 'bizuno-payments-for-woocommerce'));
         }
     }
 
@@ -434,7 +435,7 @@ class PayFabric_Gateway_Request
             return new WP_Error('invalid_order', 'miss merchant configuration info');
         }
 
-        $maxiPago = new payments;
+        $maxiPago = new PayFabric_Payments;
         $maxiPago->setLogger(PayFabric_LOG_DIR, PayFabric_LOG_SEVERITY);
 
         // Set your credentials before any other transaction methods
@@ -465,7 +466,7 @@ class PayFabric_Gateway_Request
             return new WP_Error('invalid_order', 'miss merchant configuration info');
         }
 
-        $maxiPago = new payments;
+        $maxiPago = new PayFabric_Payments;
         $maxiPago->setLogger(PayFabric_LOG_DIR, PayFabric_LOG_SEVERITY);
 
         // Set your credentials before any other transaction methods
@@ -478,7 +479,8 @@ class PayFabric_Gateway_Request
         $result = json_decode($maxiPago->response);
 
         if (strtolower($result->Status) == 'approved') {
-            $order->add_order_note(sprintf(__('Capture charge complete (Amount: %s)'), $amount));
+            // translators: %s: the captured amount.
+            $order->add_order_note(sprintf(__('Capture charge complete (Amount: %s)', 'bizuno-payments-for-woocommerce'), $amount));
             $order->update_meta_data('_payment_status', 'completed');
             $order->payment_complete();
             if ($this->gateway->api_success_status == '1') {
@@ -488,11 +490,12 @@ class PayFabric_Gateway_Request
             //update the transaction ID with the new capture transaction ID for refund use
             $order->update_meta_data('_transaction_id', $result->TrxKey);
 //            update_post_meta($order_id, '_transaction_id', $result->TrxKey); // Fails in HPOS
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- intentionally triggering WooCommerce's core payment-complete hook.
             do_action('woocommerce_payment_complete', $order_id);
             $order->save();
             return true;
         } else {
-            $order->add_order_note(!empty($result->Message) ? $result->Message : __('Capture error!'));
+            $order->add_order_note(!empty($result->Message) ? $result->Message : __('Capture error!', 'bizuno-payments-for-woocommerce'));
             return;
         }
     }
@@ -505,7 +508,7 @@ class PayFabric_Gateway_Request
             return new WP_Error('invalid_order', 'miss merchant configuration info');
         }
 
-        $maxiPago = new payments;
+        $maxiPago = new PayFabric_Payments;
         $maxiPago->setLogger(PayFabric_LOG_DIR, PayFabric_LOG_SEVERITY);
 
         // Set your credentials before any other transaction methods
@@ -522,7 +525,7 @@ class PayFabric_Gateway_Request
             $order->save();
             return true;
         } else {
-            $order->add_order_note(!empty($result->Message) ? $result->Message : __('Void error!'));
+            $order->add_order_note(!empty($result->Message) ? $result->Message : __('Void error!', 'bizuno-payments-for-woocommerce'));
             return;
         }
     }
@@ -530,7 +533,7 @@ class PayFabric_Gateway_Request
     //Do the payment gateway check
     public function do_check_gateway($sandbox, $api_merchant_id, $api_password, $payment_action)
     {
-        $maxiPago = new payments;
+        $maxiPago = new PayFabric_Payments;
         $maxiPago->setLogger(PayFabric_LOG_DIR, PayFabric_LOG_SEVERITY);
 
         // Set your credentials before any other transaction methods
@@ -552,7 +555,7 @@ class PayFabric_Gateway_Request
             if (is_object(payFabric_RequestBase::$logger)) {
                 payFabric_RequestBase::$logger->logCrit($maxiPago->response);
             }
-            throw new UnexpectedValueException($maxiPago->response, 503);
+            throw new UnexpectedValueException(esc_html($maxiPago->response), 503);
         }
         return $responseTran->Key;
     }

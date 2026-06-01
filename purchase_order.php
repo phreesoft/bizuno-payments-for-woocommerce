@@ -77,6 +77,7 @@ class WC_Gateway_PurchOrder extends WC_Payment_Gateway
     {
         $order = wc_get_order( $order_id );
         if ( $order->get_total() > 0 ) { // Mark as on-hold (we're awaiting the purchorder).
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- stable public filter shared with the Bizuno API plugin family; renaming would break existing integrations.
             $order->update_status( apply_filters( 'bizuno_api_purchorder_process_payment_order_status', 'on-hold', $order ), _x( 'Awaiting check payment', 'Check payment method', 'bizuno-payments-for-woocommerce' ) );
         } else { $order->payment_complete(); }
         WC()->cart->empty_cart();

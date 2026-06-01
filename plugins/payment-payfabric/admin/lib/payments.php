@@ -1,6 +1,7 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) { exit; } // no direct file access
 
-class payments extends payFabric_ResponseBase
+class PayFabric_Payments extends payFabric_ResponseBase
 {
 
     private $request;

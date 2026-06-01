@@ -93,6 +93,7 @@ class PayFabric extends WC_Payment_Gateway
                 $this->enqueue_styles();
                 $this->enqueue_js();
                 $payfabric_request = new PayFabric_Gateway_Request($this);
+                // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- gateway form markup is assembled by the PayFabric SDK from escaped parts and includes the HPP <script>, which wp_kses would strip.
                 echo $payfabric_request->generate_payfabric_gateway_form(null, $this->testmode);
             }
         } catch (Exception $e) {
@@ -213,6 +214,7 @@ class PayFabric extends WC_Payment_Gateway
             $order = wc_get_order($order_id);
             $payfabric_request = new PayFabric_Gateway_Request($this);
 
+            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- gateway form markup is assembled by the PayFabric SDK from escaped parts and includes the HPP <script>, which wp_kses would strip.
             echo $payfabric_request->generate_payfabric_gateway_form($order, $this->testmode);
         } catch (Exception $e) {
             wc_print_notice($e->getMessage(), 'error');
@@ -223,8 +225,11 @@ class PayFabric extends WC_Payment_Gateway
     public function payfabric_response_handler()
     {
         try {
+            // PayFabric redirects the shopper back to this WC API endpoint with the transaction
+            // key in the query string; this is an external gateway callback, so no nonce is
+            // available to verify. phpcs:ignore WordPress.Security.NonceVerification.Recommended
             if (isset($_GET['wcapi']) && isset($_GET['TrxKey']) && empty($_GET['wc-ajax'])) {
-                $merchantTxId = $_GET['TrxKey'];
+                $merchantTxId = sanitize_text_field( wp_unslash( $_GET['TrxKey'] ) );
                 $payfabric_request = new PayFabric_Gateway_Request($this);
                 $payfabric_request->generate_check_request_form($merchantTxId, $this->testmode);
             }
@@ -239,8 +244,8 @@ class PayFabric extends WC_Payment_Gateway
         if($order->get_payment_method() == 'payfabric') {
             $transaction_id = $order->get_meta('_transaction_id', true);
             if (!empty($transaction_id)) {
-                echo '<h3>' . $this->method_title . ' ID </h3>';
-                echo "<p>$transaction_id</p>";
+                echo '<h3>' . esc_html( $this->method_title ) . ' ID </h3>';
+                echo '<p>' . esc_html( $transaction_id ) . '</p>';
             }
         }
     }
@@ -269,7 +274,7 @@ class PayFabric extends WC_Payment_Gateway
     {
         try {
             $raw_post = file_get_contents('php://input');
-            $parts = parse_url($raw_post);
+            $parts = wp_parse_url($raw_post);
             parse_str($parts['path'], $query);
             $this->logging('Gateway post callback: ' . json_encode($query));
             if (isset($query['TrxKey'])) {
@@ -324,11 +329,13 @@ class PayFabric extends WC_Payment_Gateway
     // add a drop down option of Capture Online button for the Order actions area
     public function add_capture_charge_order_action($actions)
     {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only deciding whether to add an admin row action; WooCommerce verifies the nonce when the action itself runs.
         if (!isset($_REQUEST['post'])) {
             return $actions;
         }
 
-        $order = wc_get_order($_REQUEST['post']);
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- see above; order id is cast with absint().
+        $order = wc_get_order(absint(wp_unslash($_REQUEST['post'])));
 
         $old_wc = version_compare(WC_VERSION, '3.0', '<');
         $order_id = $old_wc ? $order->id : $order->get_id();
@@ -344,7 +351,7 @@ class PayFabric extends WC_Payment_Gateway
             $actions = array();
         }
 
-        $actions['payfabric_capture_charge'] = esc_html__('Capture Online');
+        $actions['payfabric_capture_charge'] = esc_html__('Capture Online', 'bizuno-payments-for-woocommerce');
 
         return $actions;
     }
@@ -352,11 +359,13 @@ class PayFabric extends WC_Payment_Gateway
     // add a drop down option of VOID Online button for the Order actions area
     public function add_void_charge_order_action($actions)
     {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only deciding whether to add an admin row action; WooCommerce verifies the nonce when the action itself runs.
         if (!isset($_REQUEST['post'])) {
             return $actions;
         }
 
-        $order = wc_get_order($_REQUEST['post']);
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- see above; order id is cast with absint().
+        $order = wc_get_order(absint(wp_unslash($_REQUEST['post'])));
 
         $old_wc = version_compare(WC_VERSION, '3.0', '<');
         $order_id = $old_wc ? $order->id : $order->get_id();
@@ -372,7 +381,7 @@ class PayFabric extends WC_Payment_Gateway
             $actions = array();
         }
 
-        $actions['payfabric_void_charge'] = esc_html__('VOID Online');
+        $actions['payfabric_void_charge'] = esc_html__('VOID Online', 'bizuno-payments-for-woocommerce');
 
         return $actions;
     }
@@ -443,12 +452,12 @@ class PayFabric extends WC_Payment_Gateway
 
     public function get_session()
     {
-        echo wp_send_json_success(
+        // wp_send_json_success() emits the JSON and exits itself — no echo (and it handles escaping).
+        wp_send_json_success(
             array(
                 'token' => WC()->session->get('transaction_token')
             )
         );
-        wp_die();
     }
 
     public function my_orders_actions($actions)
