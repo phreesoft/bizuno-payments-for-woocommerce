@@ -227,12 +227,14 @@ class PayFabric extends WC_Payment_Gateway
         try {
             // PayFabric redirects the shopper back to this WC API endpoint with the transaction
             // key in the query string; this is an external gateway callback, so no nonce is
-            // available to verify. phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            // available to verify. The TrxKey is unslashed + sanitized before use.
+            // phpcs:disable WordPress.Security.NonceVerification.Recommended
             if (isset($_GET['wcapi']) && isset($_GET['TrxKey']) && empty($_GET['wc-ajax'])) {
                 $merchantTxId = sanitize_text_field( wp_unslash( $_GET['TrxKey'] ) );
                 $payfabric_request = new PayFabric_Gateway_Request($this);
                 $payfabric_request->generate_check_request_form($merchantTxId, $this->testmode);
             }
+            // phpcs:enable WordPress.Security.NonceVerification.Recommended
         } catch (Exception $e) {
             return $e->getMessage();
         }
