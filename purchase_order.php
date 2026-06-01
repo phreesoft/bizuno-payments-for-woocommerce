@@ -34,8 +34,8 @@ class WC_Gateway_PurchOrder extends WC_Payment_Gateway
         $this->id                 = 'purchorder';
         //$this->icon             = apply_filters( 'bizuno_api_purchorder_icon', '' );
         $this->has_fields         = false;
-        $this->method_title       = _x( 'Purchase Order payments', 'Purchase Order payment method', 'bizuno-payfabric' );
-        $this->method_description = __( 'Accept payment via business Purchase Order. This offline gateway can also be useful to test purchases.', 'bizuno-payfabric' );
+        $this->method_title       = _x( 'Purchase Order payments', 'Purchase Order payment method', 'bizuno-payments-for-woocommerce' );
+        $this->method_description = __( 'Accept payment via business Purchase Order. This offline gateway can also be useful to test purchases.', 'bizuno-payments-for-woocommerce' );
         $this->init_form_fields();
         $this->init_settings();
         $this->title              = $this->get_option( 'title' );
@@ -49,16 +49,16 @@ class WC_Gateway_PurchOrder extends WC_Payment_Gateway
     public function init_form_fields()
     {
         $this->form_fields = [
-            'enabled'     => ['title'=>__( 'Enable/Disable', 'bizuno-payfabric' ),'type'=>'checkbox','default'=>'no',
-                'label'      => __( 'Enable PO Checkout', 'bizuno-payfabric' )],
-            'title'       => ['title'=>__( 'Title', 'bizuno-payfabric' ),         'type'=>'text',    'desc_tip'=>true,
-                'description'=> __( 'This controls the title which the user sees during checkout.', 'bizuno-payfabric' ),
-                'default'    => _x( 'Purchase Order', 'Purchase Order payment method', 'bizuno-payfabric' )],
-            'description' => ['title'=>__( 'Description', 'bizuno-payfabric' ),   'type'=>'textarea','desc_tip'=>true,
-                'description'=> __( 'Payment method description that the customer will see on your checkout.', 'bizuno-payfabric' ),
-                'default'    => __( 'You will receive an invoice with tracking once your order ships.', 'bizuno-payfabric' )],
-            'instructions'=> ['title'=>__( 'Instructions', 'bizuno-payfabric' ),  'type'=>'textarea','desc_tip'=>true, 'default'=>'',
-                'description'=> __( 'Instructions that will be added to the thank you page and emails.', 'bizuno-payfabric' )]];
+            'enabled'     => ['title'=>__( 'Enable/Disable', 'bizuno-payments-for-woocommerce' ),'type'=>'checkbox','default'=>'no',
+                'label'      => __( 'Enable PO Checkout', 'bizuno-payments-for-woocommerce' )],
+            'title'       => ['title'=>__( 'Title', 'bizuno-payments-for-woocommerce' ),         'type'=>'text',    'desc_tip'=>true,
+                'description'=> __( 'This controls the title which the user sees during checkout.', 'bizuno-payments-for-woocommerce' ),
+                'default'    => _x( 'Purchase Order', 'Purchase Order payment method', 'bizuno-payments-for-woocommerce' )],
+            'description' => ['title'=>__( 'Description', 'bizuno-payments-for-woocommerce' ),   'type'=>'textarea','desc_tip'=>true,
+                'description'=> __( 'Payment method description that the customer will see on your checkout.', 'bizuno-payments-for-woocommerce' ),
+                'default'    => __( 'You will receive an invoice with tracking once your order ships.', 'bizuno-payments-for-woocommerce' )],
+            'instructions'=> ['title'=>__( 'Instructions', 'bizuno-payments-for-woocommerce' ),  'type'=>'textarea','desc_tip'=>true, 'default'=>'',
+                'description'=> __( 'Instructions that will be added to the thank you page and emails.', 'bizuno-payments-for-woocommerce' )]];
     }
 
     public function thankyou_page()
@@ -77,7 +77,7 @@ class WC_Gateway_PurchOrder extends WC_Payment_Gateway
     {
         $order = wc_get_order( $order_id );
         if ( $order->get_total() > 0 ) { // Mark as on-hold (we're awaiting the purchorder).
-            $order->update_status( apply_filters( 'bizuno_api_purchorder_process_payment_order_status', 'on-hold', $order ), _x( 'Awaiting check payment', 'Check payment method', 'bizuno-payfabric' ) );
+            $order->update_status( apply_filters( 'bizuno_api_purchorder_process_payment_order_status', 'on-hold', $order ), _x( 'Awaiting check payment', 'Check payment method', 'bizuno-payments-for-woocommerce' ) );
         } else { $order->payment_complete(); }
         WC()->cart->empty_cart();
         return ['result'=>'success', 'redirect'=>$this->get_return_url( $order )];

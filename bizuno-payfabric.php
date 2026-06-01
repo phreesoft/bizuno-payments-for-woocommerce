@@ -1,18 +1,20 @@
 <?php
 /**
- * Plugin Name:       Bizuno PayFabric Plugin
- * Description:       PayFabric and Bizuno authorized Purchase Order payment plugins for WooCommerce
- * Version:           2.0
+ * Plugin Name:       Bizuno Payments for WooCommerce
+ * Description:       PayFabric credit-card and Bizuno Purchase Order payment gateways for WooCommerce.
+ * Version:           7.4.2
  * Requires at least: 6.5
  * Tested up to:      6.9
  * Requires PHP:      8.0
+ * Requires Plugins:  woocommerce
  * Author:            PhreeSoft, Inc./Global Payments
  * Author URI:        https://www.phreesoft.com
- * Author Email:      support@phreesoft.com
- * Text Domain:       bizuno-payfabric
+ * Text Domain:       bizuno-payments-for-woocommerce
  * Domain Path:       /locale
  * License:           AGPL-3.0-or-later
  * License URI:       https://www.gnu.org/licenses/agpl-3.0.txt
+ * WC requires at least: 8.0
+ * WC tested up to:   9.4
  */
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
@@ -34,6 +36,13 @@ class bizuno_payfabric
 {
     public function __construct()
     {
+        // Declare WooCommerce HPOS (custom order tables) compatibility; order access here uses
+        // the CRUD API (wc_get_order / get_meta / update_status), which is HPOS-safe.
+        add_action( 'before_woocommerce_init', function() {
+            if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+                \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+            }
+        } );
         // Actions
         add_action ( 'plugins_loaded',                                    [ $this, 'bizuno_payfabric_plugins_loaded' ] );
         add_action ( 'woocommerce_checkout_process',                      [ $this, 'bizuno_payfabric_payment' ] );
@@ -66,8 +75,8 @@ class bizuno_payfabric
     public function bizuno_payfabric_payment()
     {
         if($_POST['payment_method'] != 'custom') { return; }
-        if( !isset($_POST['mobile']) || empty($_POST['mobile']) )           { wc_add_notice( __( 'Please add your mobile number', 'bizuno-payfabric' ), 'error' ); }
-        if( !isset($_POST['transaction']) || empty($_POST['transaction']) ) { wc_add_notice( __( 'Please add your transaction ID', 'bizuno-payfabric' ), 'error' ); }
+        if( !isset($_POST['mobile']) || empty($_POST['mobile']) )           { wc_add_notice( __( 'Please add your mobile number', 'bizuno-payments-for-woocommerce' ), 'error' ); }
+        if( !isset($_POST['transaction']) || empty($_POST['transaction']) ) { wc_add_notice( __( 'Please add your transaction ID', 'bizuno-payments-for-woocommerce' ), 'error' ); }
     }
 
     public function bizuno_payfabric_update_order_meta( $order_id ) // Update the order meta with field value
@@ -86,8 +95,8 @@ class bizuno_payfabric
         $mobile     = $order->get_meta( 'mobile', true );
         $transaction = $order->get_meta( 'transaction', true );
         // Output (unchanged except esc_html wrapping)
-        echo '<p><strong>' . esc_html( __( 'Mobile Number', 'bizuno-payfabric' ) ) . ':</strong> ' . esc_html( $mobile ) . '</p>';
-        echo '<p><strong>' . esc_html( __( 'Transaction ID', 'bizuno-payfabric' ) ) . ':</strong> ' . esc_html( $transaction ) . '</p>';
+        echo '<p><strong>' . esc_html( __( 'Mobile Number', 'bizuno-payments-for-woocommerce' ) ) . ':</strong> ' . esc_html( $mobile ) . '</p>';
+        echo '<p><strong>' . esc_html( __( 'Transaction ID', 'bizuno-payments-for-woocommerce' ) ) . ':</strong> ' . esc_html( $transaction ) . '</p>';
     }
 
     public function bizuno_api_disable_purchorder( $available_gateways ) { // Disable PO Method if the user is not logged in or doesn't have a contact ID link to Bizuno

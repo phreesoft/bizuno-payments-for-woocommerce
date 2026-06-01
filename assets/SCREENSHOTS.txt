@@ -1,0 +1,30 @@
+WordPress.org plugin assets — Bizuno Payments for WooCommerce
+=============================================================
+
+This folder maps to the WordPress.org SVN /assets directory (a SIBLING of
+/trunk and /tags — it is NOT shipped inside the plugin zip). Place the files
+here, then copy them into SVN /assets when publishing.
+
+SCREENSHOTS
+-----------
+Capture each as a PNG, name it exactly as below, and drop it in this folder.
+The numbers MUST match the order of the "== Screenshots ==" list in readme.txt.
+Recommended width ~1280px, cropped to the relevant panel.
+
+  screenshot-1.png  WooCommerce -> Settings -> Payments list showing the
+                    PayFabric and Purchase Order methods.
+  screenshot-2.png  PayFabric gateway settings: merchant credentials and
+                    test/live mode.
+  screenshot-3.png  Purchase Order method settings: title, description and
+                    customer instructions.
+  screenshot-4.png  Checkout with the PayFabric credit-card option selected.
+  screenshot-5.png  Checkout with the Purchase Order option selected.
+
+OPTIONAL (recommended for a polished directory listing)
+-------------------------------------------------------
+  banner-772x250.png    (and optional retina banner-1544x500.png)
+  icon-128x128.png      (and optional retina icon-256x256.png)
+
+NOTE: When running Plugin Check against only the plugin folder, it may warn
+that the readme references screenshots not found in the plugin. That is
+expected — screenshots live in SVN /assets, not in the plugin zip.

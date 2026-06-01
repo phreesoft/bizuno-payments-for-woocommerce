@@ -216,7 +216,7 @@ class PayFabric_Gateway_Request
 //                if ($order_status != 'on-hold') {
 //                    //Auth transaction
 //                    update_post_meta($order->get_id(), '_payment_status', 'on-hold');
-//                    $order->update_status('on-hold', sprintf(__('Card payment authorized.', 'payfabric-gateway-woocommerce')));
+//                    $order->update_status('on-hold', sprintf(__('Card payment authorized.', 'bizuno-payments-for-woocommerce')));
 //
 //                    // Reduce stock levels
 //                    wc_reduce_stock_levels($order_id);
@@ -228,7 +228,7 @@ class PayFabric_Gateway_Request
                     // Auth transaction
                     $order->update_meta_data( '_payment_status', 'processing' );
                     //update_post_meta($order->get_id(), '_payment_status', 'processing');
-                    $order->update_status('processing', sprintf(__('Card payment authorized via PayFabric.', 'payfabric-gateway-woocommerce')));
+                    $order->update_status('processing', sprintf(__('Card payment authorized via PayFabric.', 'bizuno-payments-for-woocommerce')));
                     
                     // Reduce stock levels
                     wc_reduce_stock_levels($order_id);
@@ -242,7 +242,7 @@ class PayFabric_Gateway_Request
                     $order->payment_complete();
                     // commented out by Phreesoft to prevent orders from being tagged 'complete'
 //                    if ($this->gateway->api_success_status == '1') {
-//                        $order->update_status('completed', sprintf(__('Card payment completed.', 'payfabric-gateway-woocommerce')));
+//                        $order->update_status('completed', sprintf(__('Card payment completed.', 'bizuno-payments-for-woocommerce')));
 //                    }
                     //                 do_action( 'woocommerce_payment_complete', $order_id);
 
@@ -251,7 +251,7 @@ class PayFabric_Gateway_Request
                 }
         } else {
             if ($order_status != 'failed') {
-                $order->update_status('failed', sprintf(__('Card payment failed.', 'payfabric-gateway-woocommerce')));
+                $order->update_status('failed', sprintf(__('Card payment failed.', 'bizuno-payments-for-woocommerce')));
             }
             return;
         }
@@ -382,7 +382,7 @@ class PayFabric_Gateway_Request
                 foreach ($form_data as $key => $value) {
                     $form_html .= "<input type='hidden' name='" . htmlentities($key) . "' value='" . htmlentities($value) . "'>";
                 }
-                $form_html .= '<button type="submit" class="button alt">' . __('Pay with PayFabric', 'payfabric-gateway-woocommerce') . '</button> </form>';
+                $form_html .= '<button type="submit" class="button alt">' . __('Pay with PayFabric', 'bizuno-payments-for-woocommerce') . '</button> </form>';
                 return $form_html;
             case '2':
                 $acceptedPaymentMethods = array("CreditCard","ECheck");
@@ -482,7 +482,7 @@ class PayFabric_Gateway_Request
             $order->update_meta_data('_payment_status', 'completed');
             $order->payment_complete();
             if ($this->gateway->api_success_status == '1') {
-                $order->update_status('completed', sprintf(__('Card payment completed.', 'payfabric-gateway-woocommerce')));
+                $order->update_status('completed', sprintf(__('Card payment completed.', 'bizuno-payments-for-woocommerce')));
             }
             $order_id = $order->get_id();
             //update the transaction ID with the new capture transaction ID for refund use
@@ -518,7 +518,7 @@ class PayFabric_Gateway_Request
         $result = json_decode($maxiPago->response);
         if (strtolower($result->Status) == 'approved') {
             $order->update_meta_data('_payment_status', 'cancelled');
-            $order->update_status('cancelled', sprintf(__('Payment void complete', 'payfabric-gateway-woocommerce')));
+            $order->update_status('cancelled', sprintf(__('Payment void complete', 'bizuno-payments-for-woocommerce')));
             $order->save();
             return true;
         } else {

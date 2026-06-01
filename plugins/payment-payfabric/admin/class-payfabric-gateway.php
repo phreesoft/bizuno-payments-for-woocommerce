@@ -55,9 +55,9 @@ class PayFabric extends WC_Payment_Gateway
         $this->version = '2.0.0';
 
         $this->id = 'payfabric';
-        $this->method_title = __('PayFabric', 'payfabric-gateway-woocommerce');
-        $this->method_description = __('PayFabric gateway sends customers to PayFabric to enter their payment information and redirects back to shop when the payment was completed.', 'payfabric-gateway-woocommerce');
-        //$this->order_button_text = __('Proceed to PayFabric', 'payfabric-gateway-woocommerce');
+        $this->method_title = __('PayFabric', 'bizuno-payments-for-woocommerce');
+        $this->method_description = __('PayFabric gateway sends customers to PayFabric to enter their payment information and redirects back to shop when the payment was completed.', 'bizuno-payments-for-woocommerce');
+        //$this->order_button_text = __('Proceed to PayFabric', 'bizuno-payments-for-woocommerce');
 
         $this->title = $this->get_option('title');
         $this->description = $this->get_option('description');
@@ -275,7 +275,7 @@ class PayFabric extends WC_Payment_Gateway
             if (isset($query['TrxKey'])) {
                 $merchantTxId = $query['TrxKey'];
             } else {
-                return __('Bad identifier.', 'payfabric-gateway-woocommerce');
+                return __('Bad identifier.', 'bizuno-payments-for-woocommerce');
             }
 
             $payfabric_request = new PayFabric_Gateway_Request($this);
@@ -430,7 +430,7 @@ class PayFabric extends WC_Payment_Gateway
             $testmode = isset($post_data[$api_testmode]) ? $post_data[$api_testmode] : null;
             $payment_action = isset($post_data[$api_payment_action]) ? $post_data[$api_payment_action] : null;
             if (empty($merchant_id) || empty($merchant_password)) {
-                WC_Admin_Settings::add_error(__('Device ID or Password cannot be blank', 'payfabric-gateway-woocommerce'));
+                WC_Admin_Settings::add_error(__('Device ID or Password cannot be blank', 'bizuno-payments-for-woocommerce'));
             } else {
                 $payfabric_request = new PayFabric_Gateway_Request($this);
                 $payfabric_request->do_check_gateway($testmode, $merchant_id, $merchant_password, $payment_action);
