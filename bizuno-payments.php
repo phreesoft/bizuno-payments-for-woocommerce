@@ -10,7 +10,6 @@
  * Author:            PhreeSoft, Inc./Global Payments
  * Author URI:        https://www.phreesoft.com
  * Text Domain:       bizuno-payments-for-woocommerce
- * Domain Path:       /locale
  * License:           AGPL-3.0-or-later
  * License URI:       https://www.gnu.org/licenses/agpl-3.0.txt
  * WC requires at least: 8.0
@@ -74,16 +73,35 @@ class bizuno_payments
     
     public function bizuno_payments_payment()
     {
-        if($_POST['payment_method'] != 'custom') { return; }
-        if( !isset($_POST['mobile']) || empty($_POST['mobile']) )           { wc_add_notice( __( 'Please add your mobile number', 'bizuno-payments-for-woocommerce' ), 'error' ); }
-        if( !isset($_POST['transaction']) || empty($_POST['transaction']) ) { wc_add_notice( __( 'Please add your transaction ID', 'bizuno-payments-for-woocommerce' ), 'error' ); }
+        // These run on WooCommerce's checkout_process hook, which fires only after
+        // WooCommerce has verified the checkout nonce — hence the nonce-ignore annotations.
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by WooCommerce checkout
+        $method = isset( $_POST['payment_method'] ) ? sanitize_text_field( wp_unslash( $_POST['payment_method'] ) ) : '';
+        if ( 'custom' !== $method ) { return; }
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by WooCommerce checkout
+        $mobile      = isset( $_POST['mobile'] )      ? sanitize_text_field( wp_unslash( $_POST['mobile'] ) )      : '';
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by WooCommerce checkout
+        $transaction = isset( $_POST['transaction'] ) ? sanitize_text_field( wp_unslash( $_POST['transaction'] ) ) : '';
+        if ( '' === $mobile )      { wc_add_notice( __( 'Please add your mobile number', 'bizuno-payments-for-woocommerce' ), 'error' ); }
+        if ( '' === $transaction ) { wc_add_notice( __( 'Please add your transaction ID', 'bizuno-payments-for-woocommerce' ), 'error' ); }
     }
 
-    public function bizuno_payments_update_order_meta( $order_id ) // Update the order meta with field value
-    { 
-        if($_POST['payment_method'] != 'custom') { return; }
-        update_post_meta( $order_id, 'mobile', $_POST['mobile'] );
-        update_post_meta( $order_id, 'transaction', $_POST['transaction'] );
+    public function bizuno_payments_update_order_meta( $order_id ) // Persist the custom checkout fields on the order
+    {
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by WooCommerce checkout
+        $method = isset( $_POST['payment_method'] ) ? sanitize_text_field( wp_unslash( $_POST['payment_method'] ) ) : '';
+        if ( 'custom' !== $method ) { return; }
+        $order = wc_get_order( $order_id );
+        if ( ! $order ) { return; }
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by WooCommerce checkout
+        $mobile      = isset( $_POST['mobile'] )      ? sanitize_text_field( wp_unslash( $_POST['mobile'] ) )      : '';
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by WooCommerce checkout
+        $transaction = isset( $_POST['transaction'] ) ? sanitize_text_field( wp_unslash( $_POST['transaction'] ) ) : '';
+        // Use the order CRUD API (HPOS-safe) instead of update_post_meta(), which would write
+        // to the wrong place on High-Performance Order Storage stores.
+        $order->update_meta_data( 'mobile', $mobile );
+        $order->update_meta_data( 'transaction', $transaction );
+        $order->save();
     }
 
     public function bizuno_payments_order_meta( $order ) {
