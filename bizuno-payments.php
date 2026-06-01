@@ -4,7 +4,7 @@
  * Description:       PayFabric credit-card and Bizuno Purchase Order payment gateways for WooCommerce.
  * Version:           7.4.2
  * Requires at least: 6.5
- * Tested up to:      6.9
+ * Tested up to:      7.0
  * Requires PHP:      8.0
  * Requires Plugins:  woocommerce
  * Author:            PhreeSoft, Inc./Global Payments

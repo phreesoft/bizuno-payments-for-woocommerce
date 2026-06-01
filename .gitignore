@@ -1,0 +1,4 @@
+.DS_Store
+
+# Local plugin build artifacts (test zips)
+/build/
