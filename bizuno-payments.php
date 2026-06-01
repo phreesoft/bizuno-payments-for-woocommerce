@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 !defined('PayFabric_LOG_DIR')      && define('PayFabric_LOG_DIR', dirname(__FILE__) . '/logs');
 !defined('PayFabric_DEBUG')        && define('PayFabric_DEBUG', false);
 
-class bizuno_payfabric
+class bizuno_payments
 {
     public function __construct()
     {
@@ -44,16 +44,16 @@ class bizuno_payfabric
             }
         } );
         // Actions
-        add_action ( 'plugins_loaded',                                    [ $this, 'bizuno_payfabric_plugins_loaded' ] );
-        add_action ( 'woocommerce_checkout_process',                      [ $this, 'bizuno_payfabric_payment' ] );
-        add_action ( 'woocommerce_checkout_update_order_meta',            [ $this, 'bizuno_payfabric_update_order_meta' ] );
-        add_action ( 'woocommerce_admin_order_data_after_billing_address',[ $this, 'bizuno_payfabric_order_meta' ], 10, 1 );
+        add_action ( 'plugins_loaded',                                    [ $this, 'bizuno_payments_plugins_loaded' ] );
+        add_action ( 'woocommerce_checkout_process',                      [ $this, 'bizuno_payments_payment' ] );
+        add_action ( 'woocommerce_checkout_update_order_meta',            [ $this, 'bizuno_payments_update_order_meta' ] );
+        add_action ( 'woocommerce_admin_order_data_after_billing_address',[ $this, 'bizuno_payments_order_meta' ], 10, 1 );
         // Filters
-        add_filter ( 'woocommerce_payment_gateways',                      [ $this, 'bizuno_payfabric_add_to_gateways' ] );
+        add_filter ( 'woocommerce_payment_gateways',                      [ $this, 'bizuno_payments_add_to_gateways' ] );
         add_filter ( 'woocommerce_available_payment_gateways',            [ $this, 'bizuno_api_disable_purchorder' ], 99, 1);
     }
 
-    public function bizuno_payfabric_plugins_loaded()
+    public function bizuno_payments_plugins_loaded()
     {
         if ( ! is_plugin_active ( 'woocommerce/woocommerce.php' ) ) { return; }
         require ( plugin_dir_path ( __FILE__ ) . 'purchase_order.php' );
@@ -65,28 +65,28 @@ class bizuno_payfabric
         }
     }
 
-    public function bizuno_payfabric_add_to_gateways( $gateways )
+    public function bizuno_payments_add_to_gateways( $gateways )
     {
         $gateways[] = 'WC_Gateway_PayFabric';
         $gateways[] = 'WC_Gateway_PurchOrder';
         return $gateways;
     }
     
-    public function bizuno_payfabric_payment()
+    public function bizuno_payments_payment()
     {
         if($_POST['payment_method'] != 'custom') { return; }
         if( !isset($_POST['mobile']) || empty($_POST['mobile']) )           { wc_add_notice( __( 'Please add your mobile number', 'bizuno-payments-for-woocommerce' ), 'error' ); }
         if( !isset($_POST['transaction']) || empty($_POST['transaction']) ) { wc_add_notice( __( 'Please add your transaction ID', 'bizuno-payments-for-woocommerce' ), 'error' ); }
     }
 
-    public function bizuno_payfabric_update_order_meta( $order_id ) // Update the order meta with field value
+    public function bizuno_payments_update_order_meta( $order_id ) // Update the order meta with field value
     { 
         if($_POST['payment_method'] != 'custom') { return; }
         update_post_meta( $order_id, 'mobile', $_POST['mobile'] );
         update_post_meta( $order_id, 'transaction', $_POST['transaction'] );
     }
 
-    public function bizuno_payfabric_order_meta( $order ) {
+    public function bizuno_payments_order_meta( $order ) {
         // Safety check: Ensure $order is a valid WC_Order object
         if ( ! is_a( $order, 'WC_Order' ) ) { return; }
         $method = $order->get_payment_method();  // Modern getter (replaces get_post_meta for _payment_method)
@@ -111,4 +111,4 @@ class bizuno_payfabric
         return $available_gateways;
     }
 }
-new bizuno_payfabric();
+new bizuno_payments();
